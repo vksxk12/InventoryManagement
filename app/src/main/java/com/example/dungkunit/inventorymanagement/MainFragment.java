@@ -8,6 +8,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.GridView;
 
+import com.example.dungkunit.inventorymanagement.Model.Inventory;
+import com.example.dungkunit.inventorymanagement.Model.InventoryAdapter;
+
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by dungkunit on 09/01/2017.
  */
@@ -27,6 +33,12 @@ public class MainFragment extends Fragment {
         mGridView = (GridView) view.findViewById(R.id.list_view);
         View emptyView = view.findViewById(R.id.empty_view);
         mGridView.setEmptyView(emptyView);
+        List<Inventory> list = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            Inventory inventory = new Inventory(i + 1, "Demo Img", "Demo Title " + i, " " + i, "" + i);
+            list.add(inventory);
+        }
+        mGridView.setAdapter(new InventoryAdapter(getActivity(), list));
         return view;
     }
 }
