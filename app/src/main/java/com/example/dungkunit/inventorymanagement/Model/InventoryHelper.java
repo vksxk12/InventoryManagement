@@ -20,7 +20,6 @@ public class InventoryHelper extends SQLiteOpenHelper {
             + InventoryEntry.COLUMN_NAME + " TEXT NOT NULL, "
             + InventoryEntry.COLUMN_PRICE + " REAL NOT NULL DEFAULT 0, "
             + InventoryEntry.COLUMN_QUANTITY + " INTEGER NOT NULL DEFAULT 0, "
-            + InventoryEntry.COLUMN_SUPPLIER + " TEXT NOT NULL, "
             + InventoryEntry.COLUMN_PICTURE + " TEXT NOT NULl );";
     private final String DROP_TABLE = "DROP TABLE IF EXISTS " + InventoryEntry.TABLE_NAME;
 

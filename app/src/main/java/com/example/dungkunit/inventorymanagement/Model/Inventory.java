@@ -1,5 +1,7 @@
 package com.example.dungkunit.inventorymanagement.Model;
 
+import android.content.ContentValues;
+
 /**
  * Created by dungkunit on 12/01/2017.
  */
@@ -21,6 +23,26 @@ public class Inventory {
         this.title = title;
         this.price = price;
         this.quantity = quantity;
+    }
+
+    public static ContentValues getContentValues(Inventory inventory) {
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(InventoryContract.InventoryEntry.COLUMN_NAME, inventory.getTitle());
+        contentValues.put(InventoryContract.InventoryEntry.COLUMN_PRICE, inventory.getPrice());
+        contentValues.put(InventoryContract.InventoryEntry.COLUMN_QUANTITY, inventory.getQuantity());
+        contentValues.put(InventoryContract.InventoryEntry.COLUMN_PICTURE, inventory.getImgSrc());
+        return contentValues;
+    }
+
+    @Override
+    public String toString() {
+        return "Inventory{" +
+                "id=" + id +
+                ", imgSrc='" + imgSrc + '\'' +
+                ", title='" + title + '\'' +
+                ", price='" + price + '\'' +
+                ", quantity='" + quantity + '\'' +
+                '}';
     }
 
     public int getId() {

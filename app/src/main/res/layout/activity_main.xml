@@ -7,11 +7,10 @@
     android:layout_height="match_parent"
     tools:context="com.example.dungkunit.inventorymanagement.MainActivity">
 
-    <GridView
+    <ListView
         android:id="@+id/list_view"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:numColumns="2"></GridView>
+        android:layout_height="match_parent"></ListView>
 
     <LinearLayout
         android:id="@+id/empty_view"
