@@ -29,13 +29,13 @@ public class InventoryHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase sqLiteDatabase) {
-        Log.e(TAG, "Creating table");
+        Log.i(TAG, "Creating table");
         sqLiteDatabase.execSQL(CREATE_TABLE);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i1) {
-        Log.e(TAG, "Updating table");
+        Log.i(TAG, "Updating table");
         sqLiteDatabase.execSQL(DROP_TABLE);
     }
 }

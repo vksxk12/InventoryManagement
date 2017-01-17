@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
@@ -26,6 +27,7 @@ import android.widget.TextView;
 import com.example.dungkunit.inventorymanagement.Model.Inventory;
 import com.example.dungkunit.inventorymanagement.Model.InventoryContract;
 import com.example.dungkunit.inventorymanagement.Model.InventoryHelper;
+import com.example.dungkunit.inventorymanagement.Model.InventoryWrapper;
 
 import java.io.File;
 import java.util.UUID;
@@ -36,6 +38,7 @@ import java.util.UUID;
 
 public class NewItemActivity extends AppCompatActivity implements View.OnTouchListener {
     private static final String TAG = NewItemActivity.class.getSimpleName();
+    private static final String KEY_UPDATE = "update";
     private final int CAPTURE_REQUEST_CODE = 100;
     private TextView txtTitle, txtPrice, txtQuantity;
     private ImageView img;
@@ -44,11 +47,15 @@ public class NewItemActivity extends AppCompatActivity implements View.OnTouchLi
     private boolean isTouched = false;
     private boolean isCaptured = false;
     private Uri uri;
+    private long itemId;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_new_item);
+        if (getIntent() != null) itemId = getIntent().getLongExtra(KEY_UPDATE, 0);
+        if (itemId != 0) setTitle(getString(R.string.update_name));
+        invalidateOptionsMenu();
         initComponents();
     }
 
@@ -77,6 +84,23 @@ public class NewItemActivity extends AppCompatActivity implements View.OnTouchLi
         txtTitle.setOnTouchListener(this);
         txtPrice.setOnTouchListener(this);
         txtQuantity.setOnTouchListener(this);
+        if (itemId != 0) {
+            isCaptured = true;
+            SQLiteDatabase sqLiteDatabase = new InventoryHelper(this).getReadableDatabase();
+            String selection = InventoryContract.InventoryEntry._ID + " = ?";
+            String[] args = {String.valueOf(itemId)};
+            Cursor cursor = sqLiteDatabase.query(InventoryContract.InventoryEntry.TABLE_NAME, null, selection, args, null, null, null);
+            InventoryWrapper wrapper = new InventoryWrapper(cursor);
+            if (wrapper.getCount() != 0) {
+                wrapper.moveToFirst();
+                Inventory inventory = wrapper.getInventory();
+                uri = Uri.parse(inventory.getImgSrc());
+                txtTitle.setText(inventory.getTitle());
+                txtPrice.setText(inventory.getPrice());
+                txtQuantity.setText(inventory.getQuantity());
+                img.setImageURI(uri);
+            }
+        }
     }
 
     @Override
@@ -112,6 +136,15 @@ public class NewItemActivity extends AppCompatActivity implements View.OnTouchLi
         MenuInflater menuInflater = getMenuInflater();
         menuInflater.inflate(R.menu.new_menu, menu);
         return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        if (itemId == 0) {
+            MenuItem menuItem = menu.findItem(R.id.menu_item_delete);
+            menuItem.setVisible(false);
+        }
+        return super.onPrepareOptionsMenu(menu);
     }
 
     @Override
@@ -167,7 +200,13 @@ public class NewItemActivity extends AppCompatActivity implements View.OnTouchLi
                 Log.i(TAG, inventory.toString());
                 ContentValues contentValues = Inventory.getContentValues(inventory);
                 SQLiteDatabase sqLiteDatabase = new InventoryHelper(this).getWritableDatabase();
-                sqLiteDatabase.insert(InventoryContract.InventoryEntry.TABLE_NAME, null, contentValues);
+                if (itemId != 0) {
+                    String selection = InventoryContract.InventoryEntry._ID + " = ?";
+                    String[] args = {String.valueOf(itemId)};
+                    sqLiteDatabase.update(InventoryContract.InventoryEntry.TABLE_NAME, contentValues, selection, args);
+                } else {
+                    sqLiteDatabase.insert(InventoryContract.InventoryEntry.TABLE_NAME, null, contentValues);
+                }
                 finish();
             }
         }

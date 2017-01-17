@@ -1,49 +1,48 @@
 package com.example.dungkunit.inventorymanagement.Model;
 
 import android.content.Context;
-import android.support.annotation.NonNull;
+import android.database.Cursor;
+import android.net.Uri;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
+import android.widget.CursorAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.dungkunit.inventorymanagement.R;
-
-import java.util.List;
 
 /**
  * Created by dungkunit on 12/01/2017.
  */
 
-public class InventoryAdapter extends ArrayAdapter<Inventory> {
-    private List<Inventory> list;
-    private Context context;
+public class InventoryAdapter extends CursorAdapter {
 
-    public InventoryAdapter(Context context, List<Inventory> objects) {
-        super(context, 0, objects);
-        this.context = context;
-        this.list = objects;
+    public InventoryAdapter(Context context, Cursor cursor) {
+        super(context, cursor, 0);
     }
 
-    public void setList(List<Inventory> newList) {
-        this.list = newList;
-    }
-
-    @NonNull
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
-        if (convertView == null) {
-            convertView = LayoutInflater.from(context).inflate(R.layout.list_item, parent, false);
-        }
-        TextView txtTitle = (TextView) convertView.findViewById(R.id.list_item_title);
-        TextView txtPrice = (TextView) convertView.findViewById(R.id.list_item_price);
-        TextView txtQuantity = (TextView) convertView.findViewById(R.id.list_item_quantity);
+    public View newView(Context context, Cursor cursor, ViewGroup viewGroup) {
+        return LayoutInflater.from(context).inflate(R.layout.list_item, viewGroup, false);
+    }
 
-        Inventory inventory = list.get(position);
+    @Override
+    public void bindView(View view, Context context, Cursor cursor) {
+        TextView txtTitle = (TextView) view.findViewById(R.id.list_item_title);
+        TextView txtPrice = (TextView) view.findViewById(R.id.list_item_price);
+        TextView txtQuantity = (TextView) view.findViewById(R.id.list_item_quantity);
+        ImageView imageView = (ImageView) view.findViewById(R.id.list_item_img);
+
+        InventoryWrapper cursorWrapper = new InventoryWrapper(cursor);
+        if (cursorWrapper.getCount() != 0) cursorWrapper.moveToFirst();
+        Log.e(InventoryAdapter.class.getSimpleName(), String.valueOf(cursorWrapper.getCount()));
+        Inventory inventory = cursorWrapper.getInventory();
         txtTitle.setText(inventory.getTitle());
         txtPrice.setText(inventory.getPrice());
         txtQuantity.setText(inventory.getQuantity());
-        return convertView;
+        Uri uri = Uri.parse(inventory.getImgSrc());
+        imageView.setImageURI(uri);
     }
 }

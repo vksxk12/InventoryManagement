@@ -1,6 +1,8 @@
 package com.example.dungkunit.inventorymanagement;
 
 import android.content.Intent;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
@@ -12,13 +14,13 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
-import com.example.dungkunit.inventorymanagement.Model.Inventory;
 import com.example.dungkunit.inventorymanagement.Model.InventoryAdapter;
+import com.example.dungkunit.inventorymanagement.Model.InventoryHelper;
 
-import java.util.ArrayList;
-import java.util.List;
+import static com.example.dungkunit.inventorymanagement.Model.InventoryContract.InventoryEntry;
 
 public class MainActivity extends AppCompatActivity {
+    private static final String KEY_UPDATE = "update";
     private static final String TAG = MainActivity.class.getSimpleName();
     private ListView listView;
 
@@ -30,13 +32,17 @@ public class MainActivity extends AppCompatActivity {
         listView = (ListView) findViewById(R.id.list_view);
         View emptyView = findViewById(R.id.empty_view);
         listView.setEmptyView(emptyView);
-        List<Inventory> list = new ArrayList<>();
 
-        listView.setAdapter(new InventoryAdapter(this, list));
+        SQLiteDatabase sqLiteDatabase = new InventoryHelper(this).getReadableDatabase();
+        Cursor cursor = sqLiteDatabase.query(InventoryEntry.TABLE_NAME, null, null, null, null, null, null);
+
+        listView.setAdapter(new InventoryAdapter(this, cursor));
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
-
+                Intent intent = new Intent(MainActivity.this, NewItemActivity.class);
+                intent.putExtra(KEY_UPDATE, id);
+                startActivity(intent);
             }
         });
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.button_add);

@@ -17,6 +17,7 @@
         </activity>
         <activity
             android:name=".NewItemActivity"
+            android:label="@string/add_name"
             android:parentActivityName=".MainActivity"
             android:theme="@style/NewAppTheme" />
     </application>

@@ -23,6 +23,6 @@ public class InventoryWrapper extends CursorWrapper {
         String price = getString(priceColumn);
         String quantity = getString(quantityColumn);
         String imgSrc = getString(pictureColumn);
-        return new Inventory(id, title, price, quantity, imgSrc);
+        return new Inventory(id, imgSrc, title, price, quantity);
     }
 }

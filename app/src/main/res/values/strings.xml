@@ -1,5 +1,7 @@
 <resources>
-    <string name="app_name">InventoryManagement</string>
+    <string name="app_name">Inventory</string>
+    <string name="add_name">Add New Inventory</string>
+    <string name="update_name">Update Inventory</string>
     <string name="empty_text_1">Oops, nothing right here!</string>
     <string name="empty_text_2">Please add new inventories</string>
 </resources>
