@@ -4,4 +4,12 @@
     <string name="update_name">Update Inventory</string>
     <string name="empty_text_1">Oops, nothing right here!</string>
     <string name="empty_text_2">Please add new inventories</string>
+    <string name="delete_all_text_ok">All %d inventories deleted</string>
+    <string name="delete_text_ok">An inventory was deleted</string>
+    <string name="insert_text_ok">An inventory with id = %d was inserted</string>
+    <string name="update_text_ok">An inventory was updated</string>
+    <string name="delete_all_text_err">Error with deleting all inventories</string>
+    <string name="delete_text_err">Error with deleting an inventory</string>
+    <string name="insert_text_err">Error with updating an inventory</string>
+    <string name="update_text_err">Error with inserting an inventory</string>
 </resources>

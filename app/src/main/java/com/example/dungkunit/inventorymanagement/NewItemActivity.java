@@ -1,16 +1,19 @@
 package com.example.dungkunit.inventorymanagement;
 
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.support.v4.app.LoaderManager;
 import android.support.v4.app.NavUtils;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
@@ -23,23 +26,24 @@ import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import com.example.dungkunit.inventorymanagement.Model.Inventory;
-import com.example.dungkunit.inventorymanagement.Model.InventoryContract;
-import com.example.dungkunit.inventorymanagement.Model.InventoryHelper;
-import com.example.dungkunit.inventorymanagement.Model.InventoryWrapper;
+import com.example.dungkunit.inventorymanagement.model.Inventory;
+import com.example.dungkunit.inventorymanagement.model.InventoryWrapper;
 
 import java.io.File;
 import java.util.UUID;
+
+import static com.example.dungkunit.inventorymanagement.model.InventoryContract.InventoryEntry;
 
 /**
  * Created by dungkunit on 15/01/2017.
  */
 
-public class NewItemActivity extends AppCompatActivity implements View.OnTouchListener {
+public class NewItemActivity extends AppCompatActivity implements View.OnTouchListener, LoaderManager.LoaderCallbacks<Cursor> {
     private static final String TAG = NewItemActivity.class.getSimpleName();
-    private static final String KEY_UPDATE = "update";
     private final int CAPTURE_REQUEST_CODE = 100;
+    private final int NEW_ITEM_LOADER = 1;
     private TextView txtTitle, txtPrice, txtQuantity;
     private ImageView img;
     private ImageButton imageButton;
@@ -47,15 +51,13 @@ public class NewItemActivity extends AppCompatActivity implements View.OnTouchLi
     private boolean isTouched = false;
     private boolean isCaptured = false;
     private Uri uri;
-    private long itemId;
+    private Uri updateUri;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_new_item);
-        if (getIntent() != null) itemId = getIntent().getLongExtra(KEY_UPDATE, 0);
-        if (itemId != 0) setTitle(getString(R.string.update_name));
-        invalidateOptionsMenu();
+        checkUpdate();
         initComponents();
     }
 
@@ -84,22 +86,15 @@ public class NewItemActivity extends AppCompatActivity implements View.OnTouchLi
         txtTitle.setOnTouchListener(this);
         txtPrice.setOnTouchListener(this);
         txtQuantity.setOnTouchListener(this);
-        if (itemId != 0) {
-            isCaptured = true;
-            SQLiteDatabase sqLiteDatabase = new InventoryHelper(this).getReadableDatabase();
-            String selection = InventoryContract.InventoryEntry._ID + " = ?";
-            String[] args = {String.valueOf(itemId)};
-            Cursor cursor = sqLiteDatabase.query(InventoryContract.InventoryEntry.TABLE_NAME, null, selection, args, null, null, null);
-            InventoryWrapper wrapper = new InventoryWrapper(cursor);
-            if (wrapper.getCount() != 0) {
-                wrapper.moveToFirst();
-                Inventory inventory = wrapper.getInventory();
-                uri = Uri.parse(inventory.getImgSrc());
-                txtTitle.setText(inventory.getTitle());
-                txtPrice.setText(inventory.getPrice());
-                txtQuantity.setText(inventory.getQuantity());
-                img.setImageURI(uri);
-            }
+    }
+
+    private void checkUpdate() {
+        if (getIntent() != null) updateUri = getIntent().getData();
+        if (updateUri == null) {
+            invalidateOptionsMenu();
+        } else {
+            setTitle(getString(R.string.update_name));
+            getSupportLoaderManager().initLoader(NEW_ITEM_LOADER, null, this);
         }
     }
 
@@ -140,7 +135,7 @@ public class NewItemActivity extends AppCompatActivity implements View.OnTouchLi
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
-        if (itemId == 0) {
+        if (updateUri == null) {
             MenuItem menuItem = menu.findItem(R.id.menu_item_delete);
             menuItem.setVisible(false);
         }
@@ -151,11 +146,18 @@ public class NewItemActivity extends AppCompatActivity implements View.OnTouchLi
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_item_ok:
-                Log.i(TAG, "option ok");
                 checkInput();
                 return true;
             case R.id.menu_item_delete:
-                Log.i(TAG, "option delete");
+                if (updateUri != null) {
+                    int row = getContentResolver().delete(updateUri, null, null);
+                    if (row == 0) {
+                        Toast.makeText(this, getString(R.string.delete_text_err), Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(this, getString(R.string.delete_text_ok), Toast.LENGTH_SHORT).show();
+                    }
+                }
+                finish();
                 return true;
             case android.R.id.home:
                 if (!isTouched) {
@@ -199,13 +201,20 @@ public class NewItemActivity extends AppCompatActivity implements View.OnTouchLi
                 Inventory inventory = new Inventory(imgUri, title, price, quantity);
                 Log.i(TAG, inventory.toString());
                 ContentValues contentValues = Inventory.getContentValues(inventory);
-                SQLiteDatabase sqLiteDatabase = new InventoryHelper(this).getWritableDatabase();
-                if (itemId != 0) {
-                    String selection = InventoryContract.InventoryEntry._ID + " = ?";
-                    String[] args = {String.valueOf(itemId)};
-                    sqLiteDatabase.update(InventoryContract.InventoryEntry.TABLE_NAME, contentValues, selection, args);
+                if (updateUri != null) {
+                    int row = getContentResolver().update(updateUri, contentValues, null, null);
+                    if (row == 0) {
+                        Toast.makeText(this, getString(R.string.update_text_err), Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(this, getString(R.string.update_text_ok), Toast.LENGTH_SHORT).show();
+                    }
                 } else {
-                    sqLiteDatabase.insert(InventoryContract.InventoryEntry.TABLE_NAME, null, contentValues);
+                    Uri newUri = getContentResolver().insert(InventoryEntry.CONTENT_URI, contentValues);
+                    if (newUri == null) {
+                        Toast.makeText(this, getString(R.string.insert_text_err), Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(this, getString(R.string.insert_text_ok, ContentUris.parseId(newUri)), Toast.LENGTH_SHORT).show();
+                    }
                 }
                 finish();
             }
@@ -243,5 +252,34 @@ public class NewItemActivity extends AppCompatActivity implements View.OnTouchLi
         } else {
             checkUnsaved();
         }
+    }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        return new CursorLoader(this, updateUri, null, null, null, null);
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        InventoryWrapper wrapper = new InventoryWrapper(data);
+        if (wrapper.getCount() != 0) {
+            wrapper.moveToFirst();
+            Inventory inventory = wrapper.getInventory();
+            uri = Uri.parse(inventory.getImgSrc());
+            txtTitle.setText(inventory.getTitle());
+            txtPrice.setText(inventory.getPrice());
+            txtQuantity.setText(inventory.getQuantity());
+            img.setImageURI(uri);
+            isCaptured = true;
+        }
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        txtTitle.setText(null);
+        txtPrice.setText(null);
+        txtQuantity.setText(null);
+        img.setImageResource(R.drawable.ic_empty_shelter);
+        isCaptured = false;
     }
 }

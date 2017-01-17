@@ -1,28 +1,32 @@
 package com.example.dungkunit.inventorymanagement;
 
+import android.content.ContentUris;
 import android.content.Intent;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.Toast;
 
-import com.example.dungkunit.inventorymanagement.Model.InventoryAdapter;
-import com.example.dungkunit.inventorymanagement.Model.InventoryHelper;
+import com.example.dungkunit.inventorymanagement.model.InventoryAdapter;
+import com.example.dungkunit.inventorymanagement.model.InventoryContract;
 
-import static com.example.dungkunit.inventorymanagement.Model.InventoryContract.InventoryEntry;
+import static com.example.dungkunit.inventorymanagement.model.InventoryContract.InventoryEntry;
 
-public class MainActivity extends AppCompatActivity {
-    private static final String KEY_UPDATE = "update";
+public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
+    private static final int MAIN_LOADER = 0;
     private static final String TAG = MainActivity.class.getSimpleName();
     private ListView listView;
+    private InventoryAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,21 +34,25 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         listView = (ListView) findViewById(R.id.list_view);
+
         View emptyView = findViewById(R.id.empty_view);
         listView.setEmptyView(emptyView);
 
-        SQLiteDatabase sqLiteDatabase = new InventoryHelper(this).getReadableDatabase();
-        Cursor cursor = sqLiteDatabase.query(InventoryEntry.TABLE_NAME, null, null, null, null, null, null);
+        adapter = new InventoryAdapter(this, null);
+        listView.setAdapter(adapter);
 
-        listView.setAdapter(new InventoryAdapter(this, cursor));
+        //Init Loader
+        getSupportLoaderManager().initLoader(MAIN_LOADER, null, this);
+
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
                 Intent intent = new Intent(MainActivity.this, NewItemActivity.class);
-                intent.putExtra(KEY_UPDATE, id);
+                intent.setData(ContentUris.withAppendedId(InventoryContract.InventoryEntry.CONTENT_URI, id));
                 startActivity(intent);
             }
         });
+
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.button_add);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -64,8 +72,28 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.menu_item_delete_all) {
-            Log.i(TAG, "option delete all");
+            int row = getContentResolver().delete(InventoryEntry.CONTENT_URI, null, null);
+            if (row == 0) {
+                Toast.makeText(this, getString(R.string.delete_all_text_err), Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, getString(R.string.delete_all_text_ok, row), Toast.LENGTH_SHORT).show();
+            }
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        return new CursorLoader(this, InventoryEntry.CONTENT_URI, null, null, null, null);
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        adapter.swapCursor(data);
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        adapter.swapCursor(null);
     }
 }

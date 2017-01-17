@@ -20,6 +20,10 @@
             android:label="@string/add_name"
             android:parentActivityName=".MainActivity"
             android:theme="@style/NewAppTheme" />
-    </application>
 
+        <provider
+            android:name=".model.InventoryProvider"
+            android:authorities="com.example.dungkunit.inventorymanagement"
+            android:exported="false" />
+    </application>
 </manifest>
