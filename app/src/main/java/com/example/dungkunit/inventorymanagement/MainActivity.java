@@ -2,56 +2,63 @@ package com.example.dungkunit.inventorymanagement;
 
 import android.content.ContentUris;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ListView;
 import android.widget.Toast;
 
+import com.example.dungkunit.inventorymanagement.model.AdapterUtils;
 import com.example.dungkunit.inventorymanagement.model.InventoryAdapter;
 import com.example.dungkunit.inventorymanagement.model.InventoryContract;
 
 import static com.example.dungkunit.inventorymanagement.model.InventoryContract.InventoryEntry;
 
-public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
+public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>, InventoryAdapter.InventoryCallback, SharedPreferences.OnSharedPreferenceChangeListener {
     private static final int MAIN_LOADER = 0;
     private static final String TAG = MainActivity.class.getSimpleName();
-    private ListView listView;
+    private RecyclerView recyclerView;
     private InventoryAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        listView = (ListView) findViewById(R.id.list_view);
-
+        Log.e(TAG, "onCreate");
         View emptyView = findViewById(R.id.empty_view);
-        listView.setEmptyView(emptyView);
-
+        recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
         adapter = new InventoryAdapter(this, null);
-        listView.setAdapter(adapter);
+        adapter.setEmptyView(emptyView);
+        recyclerView.setAdapter(adapter);
 
+        new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+            @Override
+            public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+                return false;
+            }
+
+            @Override
+            public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
+                int id = (int) viewHolder.itemView.getTag();
+                Uri uri = ContentUris.withAppendedId(InventoryEntry.CONTENT_URI, id);
+                getContentResolver().delete(uri, null, null);
+            }
+        }).attachToRecyclerView(recyclerView);
         //Init Loader
         getSupportLoaderManager().initLoader(MAIN_LOADER, null, this);
-
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
-                Intent intent = new Intent(MainActivity.this, NewItemActivity.class);
-                intent.setData(ContentUris.withAppendedId(InventoryContract.InventoryEntry.CONTENT_URI, id));
-                startActivity(intent);
-            }
-        });
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.button_add);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -60,6 +67,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 startActivity(new Intent(MainActivity.this, NewItemActivity.class));
             }
         });
+
+        setUpPreferences();
     }
 
     @Override
@@ -71,13 +80,18 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.menu_item_delete_all) {
+        int id = item.getItemId();
+        if (id == R.id.menu_item_delete_all) {
             int row = getContentResolver().delete(InventoryEntry.CONTENT_URI, null, null);
             if (row == 0) {
                 Toast.makeText(this, getString(R.string.delete_all_text_err), Toast.LENGTH_SHORT).show();
             } else {
                 Toast.makeText(this, getString(R.string.delete_all_text_ok, row), Toast.LENGTH_SHORT).show();
             }
+            return true;
+        }
+        if (id == R.id.menu_item_settings) {
+            startActivity(new Intent(MainActivity.this, SettingsActivity.class));
         }
         return super.onOptionsItemSelected(item);
     }
@@ -95,5 +109,44 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
         adapter.swapCursor(null);
+    }
+
+    @Override
+    public void onItemClick(int itemId) {
+        Intent intent = new Intent(MainActivity.this, NewItemActivity.class);
+        intent.setData(ContentUris.withAppendedId(InventoryContract.InventoryEntry.CONTENT_URI, itemId));
+        startActivity(intent);
+    }
+
+    private void setUpPreferences() {
+        SharedPreferences sharedPreferences = android.support.v7.preference.PreferenceManager.getDefaultSharedPreferences(this);
+        String displayImgKey = getString(R.string.pref_display_image_key);
+        boolean displayImgDefault = getResources().getBoolean(R.bool.pref_display_image_default);
+        AdapterUtils.setDisplayImage(recyclerView, sharedPreferences.getBoolean(displayImgKey, displayImgDefault));
+        String displayLayoutKey = getString(R.string.pref_layout_key);
+        String displayLayoutDefault = getString(R.string.pref_array_layout_value_1);
+        String valueGetFromPreference = sharedPreferences.getString(displayLayoutKey, displayLayoutDefault);
+        AdapterUtils.setDisplayLayout(this, recyclerView, valueGetFromPreference);
+        sharedPreferences.registerOnSharedPreferenceChangeListener(this);
+    }
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        String displayImgKey = getString(R.string.pref_display_image_key);
+        boolean displayImgDefault = getResources().getBoolean(R.bool.pref_display_image_default);
+        String displayLayoutKey = getString(R.string.pref_layout_key);
+        String displayLayoutDefault = getString(R.string.pref_array_layout_value_1);
+        if (key.equals(displayImgKey)) {
+            AdapterUtils.setDisplayImage(recyclerView, sharedPreferences.getBoolean(key, displayImgDefault));
+        }
+        if (key.equals(displayLayoutKey)) {
+            AdapterUtils.setDisplayLayout(this, recyclerView, sharedPreferences.getString(key, displayLayoutDefault));
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        PreferenceManager.getDefaultSharedPreferences(this).unregisterOnSharedPreferenceChangeListener(this);
     }
 }

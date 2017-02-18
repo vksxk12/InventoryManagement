@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <CheckBoxPreference
+        android:defaultValue="@bool/pref_display_image_default"
+        android:key="@string/pref_display_image_key"
+        android:summaryOff="@string/pref_display_image_summary_off"
+        android:summaryOn="@string/pref_display_image_summary_on"
+        android:title="@string/pref_display_image_label" />
+
+    <ListPreference
+        android:defaultValue="@string/pref_array_layout_value_1"
+        android:entries="@array/pref_array_layout_label"
+        android:entryValues="@array/pref_array_layout_value"
+        android:key="@string/pref_layout_key"
+        android:summary="%s"
+        android:title="@string/pref_layout_label" />
+
+    <ListPreference
+        android:defaultValue="@string/pref_array_color_value_1"
+        android:entries="@array/pref_array_color_label"
+        android:entryValues="@array/pref_array_color_value"
+        android:key="@string/pref_color_key"
+        android:summary="%s"
+        android:title="@string/pref_color_label" />
+
+</PreferenceScreen>

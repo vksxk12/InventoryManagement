@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="pref_array_color_label">
+        <item>@string/pref_array_color_label_1</item>
+        <item>@string/pref_array_color_label_2</item>
+        <item>@string/pref_array_color_label_3</item>
+    </array>
+    <array name="pref_array_color_value">
+        <item>@string/pref_array_color_value_1</item>
+        <item>@string/pref_array_color_value_2</item>
+        <item>@string/pref_array_color_value_3</item>
+    </array>
+    <array name="pref_array_layout_label">
+        <item>@string/pref_array_layout_label_1</item>
+        <item>@string/pref_array_layout_label_2</item>
+    </array>
+    <array name="pref_array_layout_value">
+        <item>@string/pref_array_layout_value_1</item>
+        <item>@string/pref_array_layout_value_2</item>
+    </array>
+</resources>

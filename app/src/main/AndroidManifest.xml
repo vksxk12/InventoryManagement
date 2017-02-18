@@ -8,7 +8,7 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".MainActivity">
+        <activity android:name=".MainActivity" android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -25,5 +25,8 @@
             android:name=".model.InventoryProvider"
             android:authorities="com.example.dungkunit.inventorymanagement"
             android:exported="false" />
+
+        <activity android:name=".SettingsActivity"></activity>
     </application>
+
 </manifest>

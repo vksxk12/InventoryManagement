@@ -12,4 +12,25 @@
     <string name="delete_text_err">Error with deleting an inventory</string>
     <string name="insert_text_err">Error with updating an inventory</string>
     <string name="update_text_err">Error with inserting an inventory</string>
+
+    <!--USE BY PREFERENCES-->
+    <string name="pref_display_image_label">Display Item Image</string>
+    <string name="pref_display_image_key" translatable="false">display_img</string>
+    <string name="pref_display_image_summary_on">Show</string>
+    <string name="pref_display_image_summary_off">Hide</string>
+    <string name="pref_color_label">Color</string>
+    <string name="pref_color_key" translatable="false">color</string>
+    <string name="pref_array_color_label_1">Color Primary</string>
+    <string name="pref_array_color_label_2">Color Primary Dark</string>
+    <string name="pref_array_color_label_3">Color Accent</string>
+    <string name="pref_array_color_value_1" translatable="false">Color Primary</string>
+    <string name="pref_array_color_value_2" translatable="false">Color Primary Dark</string>
+    <string name="pref_array_color_value_3" translatable="false">Color Accent</string>
+    <string name="pref_layout_label">Layout</string>
+    <string name="pref_layout_key" translatable="false">layout</string>
+    <string name="pref_array_layout_label_1">Linear Layout</string>
+    <string name="pref_array_layout_label_2">Grid Layout</string>
+    <string name="pref_array_layout_value_1" translatable="false">Linear Layout</string>
+    <string name="pref_array_layout_value_2" translatable="false">Grid Layout</string>
+    <!--USE BY PREFERENCES-->
 </resources>

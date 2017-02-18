@@ -10,4 +10,8 @@
         android:id="@+id/menu_item_delete"
         android:title="Delete"
         app:showAsAction="never" />
+    <item
+        android:id="@+id/menu_item_settings"
+        android:title="Settings"
+        app:showAsAction="never" />
 </menu>

@@ -57,6 +57,7 @@ public class NewItemActivity extends AppCompatActivity implements View.OnTouchLi
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_new_item);
+        Log.e(TAG,"onCreate");
         checkUpdate();
         initComponents();
     }
@@ -165,6 +166,9 @@ public class NewItemActivity extends AppCompatActivity implements View.OnTouchLi
                 } else {
                     checkUnsaved();
                 }
+                return true;
+            case R.id.menu_item_settings:
+                startActivity(new Intent(NewItemActivity.this, SettingsActivity.class));
                 return true;
         }
         return super.onOptionsItemSelected(item);
